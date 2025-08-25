@@ -1,0 +1,10 @@
+services:
+  php:
+    image: yiisoftware/yii2-php:8.4-fpm-nginx
+    container_name: knowledge-yii2
+    volumes:
+      - ~/.composer-docker/cache:/root/.composer/cache:delegated
+      - ./:/app:delegated
+    ports:
+      - '8000:80'
+
