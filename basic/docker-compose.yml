@@ -17,6 +17,6 @@ services:
       MYSQL_USER: 'workslavan'
       MYSQL_PASSWORD: 'sofj@LA@451@#l'
     volumes:
-      - ./sourcefiles/dbdata/data:/var/lib/mysql
+      - ./sourcefiles/dbdata:/var/lib/mysql
     ports:
-      - '3306:3306'
+      - '3307:3306'

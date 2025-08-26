@@ -79,6 +79,7 @@ $js = <<<JS
 JS;
 
 $this->registerJs($js);
+
 ?>
 <div class="site-index">
 

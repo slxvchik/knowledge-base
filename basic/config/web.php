@@ -1,5 +1,11 @@
 <?php
 
+use app\repositories\ContactRepository;
+use app\repositories\DealRepository;
+use app\services\ContactService;
+use app\services\DealService;
+use yii\di\Container;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -12,6 +18,38 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+                'deals' => 'deal/index',
+                'deals/create' => 'deal/create',
+                'deals/view/<id:\d+>' => 'deal/view',
+                'deals/update/<id:\d+>' => 'deal/update',
+                'deals/delete/<id:\d+>' => 'deal/delete',
+
+                'contacts' => 'contact/index',
+                'contacts/create' => 'contact/create',
+                'contacts/view/<id:\d+>' => 'contact/view',
+                'contacts/update/<id:\d+>' => 'contact/update',
+                'contacts/delete/<id:\d+>' => 'contact/delete',
+            ]
+        ],
+        'container' => [
+            'class' => Container::class,
+            'definitions' => [
+                DealService::class => function () {
+                    return new DealService(Yii::$container->get(DealRepository::class));
+                },
+                ContactService::class => function () {
+                    return new ContactService(Yii::$container->get(ContactRepository::class));
+                }
+            ],
+            'singletons' => [
+                DealRepository::class => DealRepository::class,
+                ContactRepository::class => ContactRepository::class
+            ]
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'NbjUArrhpAO0_8vtUQAoVFAdtRCotKSD',
@@ -53,22 +91,5 @@ $config = [
     ],
     'params' => $params,
 ];
-
-if (YII_ENV_DEV) {
-    // configuration adjustments for 'dev' environment
-    $config['bootstrap'][] = 'debug';
-    $config['modules']['debug'] = [
-        'class' => 'yii\debug\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
-    ];
-
-    $config['bootstrap'][] = 'gii';
-    $config['modules']['gii'] = [
-        'class' => 'yii\gii\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
-    ];
-}
 
 return $config;

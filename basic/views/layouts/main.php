@@ -36,12 +36,13 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         'brandUrl' => Yii::$app->homeUrl,
         'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
     ]);
-//    echo Nav::widget([
-//        'options' => ['class' => 'navbar-nav'],
-//        'items' => [
-//            ['label' => 'Home', 'url' => ['/site/index']],
-//        ]
-//    ]);
+    echo Nav::widget(config: [
+        'options' => ['class' => 'navbar-nav'],
+        'items' => [
+            ['label' => 'Contacts', 'url' => ['/contacts']],
+            ['label' => 'Deals', 'url' => ['/deals']],
+        ]
+    ]);
     NavBar::end();
     ?>
 </header>
