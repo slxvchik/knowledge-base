@@ -57,12 +57,18 @@ $js = <<<JS
     let currentAjaxRequest = null;
     
     function updateContent() {
+        
+        if (currentThemeKey == null || currentSubTheme == null) {
+            $('#content').html('<div>Содержимое отсутствует</div>');
+            return;
+        }
+        
         let ajaxUrl = $('[data-theme="' + currentThemeKey + '"][data-subtheme-key="' + currentSubTheme + '"]').data('ajax');
         
         if (currentAjaxRequest) {
             currentAjaxRequest.abort();
         }
-
+        
         currentAjaxRequest = $.ajax({
             url: ajaxUrl,
             type: 'GET',
@@ -113,11 +119,15 @@ $this->registerJs($js);
                 <h2>Подтема</h2>
                 <ul class="table__panel" id="subthemes">
                     <?php foreach ($themes as $themeId => $themeInfo): ?>
-                        <?php foreach ($themeInfo['items'] as $itemKey => $item): ?>
+                        <?php if (isset($themeInfo['items']) && count($themeInfo['items'])): ?>
+                                <?php foreach ($themeInfo['items'] as $itemKey => $item): ?>
                     <li class="table__panel_item" data-ajax="<?= Html::encode($themeInfo['ajaxUrl'] . '/' . $item['id']); ?>"  data-theme="<?= Html::encode($themeId); ?>" data-subtheme-key="<?= Html::encode($itemKey); ?>">
                         <?= Html::encode($item['label']); ?>
                     </li>
-                        <?php endforeach; ?>
+                                <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="table__panel_item" data-theme="<?= Html::encode($themeId); ?>">Списка нет, добавьте сущность в <?= $themeId; ?></li>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </ul>
             </div>
