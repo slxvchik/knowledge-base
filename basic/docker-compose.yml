@@ -1,6 +1,6 @@
 services:
   php:
-    image: yiisoftware/yii2-php:8.4-fpm-nginx
+    image: yiisoftware/yii2-php:8.4-apache
     container_name: knowledge-yii2
     volumes:
       - ~/.composer-docker/cache:/root/.composer/cache:delegated
@@ -17,6 +17,10 @@ services:
       MYSQL_USER: 'workslavan'
       MYSQL_PASSWORD: 'sofj@LA@451@#l'
     volumes:
-      - ./sourcefiles/dbdata:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     ports:
       - '3307:3306'
+
+volumes:
+  mysql_data:
+    name: local

@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\exceptions\ValidationException;
 use app\models\forms\DealForm;
+use app\services\ContactService;
 use app\services\DealService;
 use Yii;
 use yii\db\Exception;
@@ -15,10 +16,12 @@ use yii\web\Response;
 class DealController extends Controller
 {
     private DealService $dealService;
+    private ContactService $contactService;
 
-    public function __construct($id, $module, DealService $dealService, $config = [])
+    public function __construct($id, $module, DealService $dealService, ContactService $contactService, $config = [])
     {
         $this->dealService = $dealService;
+        $this->contactService = $contactService;
         parent::__construct($id, $module, $config);
     }
 
@@ -38,13 +41,14 @@ class DealController extends Controller
         $deal = $this->dealService->getDeal($id);
 
         return $this->render('view', [
-            'deal' => $deal,
+            'deal' => $deal
         ]);
     }
 
     /**
      * @throws Exception
      * @throws ValidationException
+     * @throws NotFoundHttpException
      */
     public function actionCreate(): Response|string
     {
@@ -52,16 +56,25 @@ class DealController extends Controller
 
         if ($form->load(Yii::$app->request->post())) {
 
-            $dealId = $this->dealService->createDeal($form);
+            $deal = $this->dealService->createDeal($form);
 
-            if ($dealId) {
-                Yii::$app->session->setFlash('success', 'Сделка успешно создана.');
-                return $this->redirect(['view', 'id' => $dealId]);
+            $deal->unlinkAll('contacts', true);
+            if ($form->contact_ids) {
+                foreach ($form->contact_ids as $contactId) {
+                    $contact = $this->contactService->getContact($contactId);
+                    $deal->link('contacts', $contact);
+                }
             }
+
+            Yii::$app->session->setFlash('success', 'Сделка успешно создана.');
+            return $this->redirect(['view', 'id' => $deal->id]);
         }
+
+        $contacts = $this->contactService->getAllContacts();
 
         return $this->render('create', [
             'model' => $form,
+            'contacts' => $contacts,
         ]);
     }
 
@@ -78,19 +91,33 @@ class DealController extends Controller
         $form->loadFromModel($deal);
 
         if ($form->load(Yii::$app->request->post()) && $this->dealService->updateDeal($id, $form)) {
+
+            $deal->unlinkAll('contacts', true);
+            if ($form->contact_ids) {
+                foreach ($form->contact_ids as $contactId) {
+                    $contact = $this->contactService->getContact($contactId);
+                    $deal->link('contacts', $contact);
+                }
+            }
+
             Yii::$app->session->setFlash('success', 'Сделка успешно обновлена.');
             return $this->redirect(['view', 'id' => $deal->id]);
         }
 
+        $contacts = $this->contactService->getAllContacts();
+
         return $this->render('update', [
             'model' => $form,
             'deal' => $deal,
+            'contacts' => $contacts,
         ]);
     }
 
     public function actionDelete(int $id): Response
     {
         try {
+            $deal = $this->dealService->getDeal($id);
+            $deal->unlinkAll('contacts', true);
             $this->dealService->deleteDeal($id);
             Yii::$app->session->setFlash('success', 'Сделка успешно удалена.');
         } catch (\Throwable $e) {
@@ -109,8 +136,29 @@ class DealController extends Controller
                     'create' => ['GET', 'POST'],
                     'update' => ['GET', 'POST'],
                     'delete' => ['POST'],
+                    'ajax' => ['GET']
                 ]
             ]
         ];
+    }
+
+    public function actionAjax(int $id)
+    {
+
+        try {
+            $deal = $this->dealService->getDeal($id);
+            $dealContacts = $deal->getContacts()->all();
+
+            return $this->renderPartial('_ajax-content', [
+                'deal' => $deal,
+                'contacts' => $dealContacts
+            ]);
+
+        } catch (\Exception $e) {
+
+            return $this->renderPartial('_error', [
+                'message' => 'Ошибка загрузки данных сделки: ' . $e->getMessage()
+            ]);
+        }
     }
 }

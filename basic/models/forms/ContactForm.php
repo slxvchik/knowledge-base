@@ -4,18 +4,20 @@ namespace app\models\forms;
 
 use app\exceptions\ValidationException;
 use app\models\Contact;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 
 class ContactForm extends Model
 {
     public $first_name;
     public $second_name;
-//    public $deals = array();
+    public $deal_ids = array();
     public function rules(): array
     {
         return [
             [['first_name'], 'required'],
-            [['second_name'], 'string']
+            [['second_name'], 'string'],
+            [['deal_ids'], 'each', 'rule' => ['integer']],
         ];
     }
     public function attributeLabels(): array
@@ -23,7 +25,7 @@ class ContactForm extends Model
         return [
             'first_name' => 'Имя',
             'second_name' => 'Фамилия',
-//            'contact' => 'Контакты'
+            'deal_ids' => 'Сделки'
         ];
     }
 
@@ -39,15 +41,17 @@ class ContactForm extends Model
         $contact = new Contact();
         $contact->first_name = $this->first_name;
         $contact->second_name = $this->second_name;
-//        $contact->contact = $this->contact;
 
         return $contact;
     }
 
+    /**
+     * @throws InvalidConfigException
+     */
     public function loadFromModel(Contact $contact): void
     {
         $this->first_name = $contact->first_name;
         $this->second_name = $contact->second_name;
-//        $this->contact = $deal->contact;
+        $this->deal_ids = $contact->getDeals()->select('id')->column();
     }
 }

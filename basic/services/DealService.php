@@ -3,6 +3,7 @@
 namespace app\services;
 
 use app\exceptions\ValidationException;
+use app\interfaces\ThemeServiceInterface;
 use app\models\Deal;
 use app\models\forms\DealForm;
 use app\repositories\DealRepository;
@@ -10,7 +11,7 @@ use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\web\NotFoundHttpException;
 
-class DealService
+class DealService implements ThemeServiceInterface
 {
     private DealRepository $dealRepository;
 
@@ -36,7 +37,7 @@ class DealService
      * @throws ValidationException
      * @throws Exception
      */
-    public function createDeal(DealForm $form): int
+    public function createDeal(DealForm $form): Deal
     {
         $deal = $form->createDeal();
         return $this->dealRepository->save($deal);
@@ -47,7 +48,7 @@ class DealService
      * @throws Exception
      * @throws ValidationException
      */
-    public function updateDeal(int $id, DealForm $form): bool
+    public function updateDeal(int $id, DealForm $form): Deal
     {
         $deal = $this->getDeal($id);
 
@@ -55,7 +56,7 @@ class DealService
 
         $deal->name = $newDeal->name;
         $deal->sum = $newDeal->sum;
-//        $deal->contact = $newDeal->contact;
+
         return $this->dealRepository->save($deal);
     }
 
@@ -70,4 +71,13 @@ class DealService
     }
 
 
+    public function getAll(): array
+    {
+        return $this->dealRepository->getAll();
+    }
+
+    public function getAjaxUrl(): string
+    {
+        return '/deals/ajax';
+    }
 }

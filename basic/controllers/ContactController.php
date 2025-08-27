@@ -17,16 +17,19 @@ use yii\web\Response;
 class ContactController extends Controller
 {
     private ContactService $contactService;
+    private DealService $dealService;
 
-    public function __construct($id, $module, ContactService $contactService, $config = [])
+    public function __construct($id, $module, ContactService $contactService, DealService $dealService, $config = [])
     {
         $this->contactService = $contactService;
+        $this->dealService = $dealService;
         parent::__construct($id, $module, $config);
     }
 
     public function actionIndex(): string
     {
         $contacts = $this->contactService->getAllContacts();
+
         return $this->render('index', [
             'contacts' => $contacts,
         ]);
@@ -54,16 +57,26 @@ class ContactController extends Controller
 
         if ($form->load(Yii::$app->request->post())) {
 
-            $contactId = $this->contactService->createContact($form);
+            $contact = $this->contactService->createContact($form);
 
-            if ($contactId) {
-                Yii::$app->session->setFlash('success', 'Контакт успешно создан.');
-                return $this->redirect(['view', 'id' => $contactId]);
+            $contact->unlinkAll('deals', true);
+            if ($form->deal_ids) {
+                foreach ($form->deal_ids as $dealId) {
+                    $deal = $this->dealService->getDeal($dealId);
+                    $contact->link('deals', $deal);
+                }
             }
+
+            Yii::$app->session->setFlash('success', 'Контакт успешно создан.');
+
+            return $this->redirect(['view', 'id' => $contact->id]);
         }
+
+        $deals = $this->dealService->getAllDeals();
 
         return $this->render('create', [
             'model' => $form,
+            'deals' => $deals,
         ]);
     }
 
@@ -80,20 +93,37 @@ class ContactController extends Controller
         $form->loadFromModel($contact);
 
         if ($form->load(Yii::$app->request->post()) && $this->contactService->updateContact($id, $form)) {
+
+            $contact->unlinkAll('deals', true);
+            if ($form->deal_ids) {
+                foreach ($form->deal_ids as $dealId) {
+                    $deal = $this->dealService->getDeal($dealId);
+                    $contact->link('deals', $deal);
+                }
+            }
+
             Yii::$app->session->setFlash('success', 'Контакт успешно обновлен.');
             return $this->redirect(['view', 'id' => $contact->id]);
         }
 
+        $deals = $this->dealService->getAllDeals();
+
         return $this->render('update', [
             'model' => $form,
             'contact' => $contact,
+            'deals' => $deals,
         ]);
     }
 
     public function actionDelete(int $id): Response
     {
         try {
+
+            $contact = $this->contactService->getContact($id);
+            $contact->unlinkAll('deals', true);
+
             $this->contactService->deleteContact($id);
+
             Yii::$app->session->setFlash('success', 'Контакт успешно удален.');
         } catch (\Throwable $e) {
             Yii::$app->session->setFlash('error', 'Не удалось удалить контакт: ' . $e->getMessage());
@@ -111,8 +141,28 @@ class ContactController extends Controller
                     'create' => ['GET', 'POST'],
                     'update' => ['GET', 'POST'],
                     'delete' => ['POST'],
+                    'ajax' => ['GET']
                 ]
             ]
         ];
+    }
+
+    public function actionAjax(int $id)
+    {
+        try {
+            $contact = $this->contactService->getContact($id);
+            $contactDeals = $contact->getDeals()->all();
+
+            return $this->renderPartial('_ajax-content', [
+                'contact' => $contact,
+                'deals' => $contactDeals
+            ]);
+
+        } catch (\Exception $e) {
+
+            return $this->renderPartial('_error', [
+                'message' => 'Ошибка загрузки данных сделки: ' . $e->getMessage()
+            ]);
+        }
     }
 }

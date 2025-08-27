@@ -1,5 +1,6 @@
 <?php
 
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 
@@ -30,6 +31,13 @@ $this->params['breadcrumbs'][] = $this->title;
             'sum',
             'created_at:datetime',
             'updated_at:datetime',
+            [
+                'label' => 'Контакты',
+                'value' => implode(', ', ArrayHelper::getColumn($deal->contacts, function($contact) {
+                    return $contact->first_name . ' ' . $contact->second_name . '(id: ' . $contact->id . ')';
+                })),
+                'visible' => !empty($deal->contacts),
+            ]
         ],
     ]) ?>
 </div>

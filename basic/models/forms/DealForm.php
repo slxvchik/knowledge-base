@@ -11,12 +11,13 @@ class DealForm extends Model
 {
     public $name;
     public $sum;
-//    public $contact = array();
+    public $contact_ids = array();
     public function rules(): array
     {
         return [
             [['name'], 'required'],
             [['sum'], 'integer', 'min' => 0],
+            [['contact_ids'], 'each', 'rule' => ['integer']],
         ];
     }
     public function attributeLabels(): array
@@ -24,7 +25,7 @@ class DealForm extends Model
         return [
             'name' => 'Название сделки',
             'sum' => 'Сумма сделки',
-//            'contact' => 'Контакты'
+            'contact_ids' => 'Контакты'
         ];
     }
 
@@ -40,7 +41,6 @@ class DealForm extends Model
         $deal = new Deal();
         $deal->name = $this->name;
         $deal->sum = $this->sum;
-//        $deal->contact = $this->contact;
 
         return $deal;
     }
@@ -49,6 +49,6 @@ class DealForm extends Model
     {
         $this->name = $deal->name;
         $this->sum = $deal->sum;
-//        $this->contact = $deal->contact;
+        $this->contact_ids = $deal->getContacts()->select('id')->column();
     }
 }

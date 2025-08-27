@@ -4,6 +4,7 @@ use app\repositories\ContactRepository;
 use app\repositories\DealRepository;
 use app\services\ContactService;
 use app\services\DealService;
+use app\services\ThemeProviderService;
 use yii\di\Container;
 
 $params = require __DIR__ . '/params.php';
@@ -27,12 +28,14 @@ $config = [
                 'deals/view/<id:\d+>' => 'deal/view',
                 'deals/update/<id:\d+>' => 'deal/update',
                 'deals/delete/<id:\d+>' => 'deal/delete',
+                'deals/ajax/<id:\d+>' => 'deal/ajax',
 
                 'contacts' => 'contact/index',
                 'contacts/create' => 'contact/create',
                 'contacts/view/<id:\d+>' => 'contact/view',
                 'contacts/update/<id:\d+>' => 'contact/update',
                 'contacts/delete/<id:\d+>' => 'contact/delete',
+                'contacts/ajax/<id:\d+>' => 'contact/ajax',
             ]
         ],
         'container' => [
@@ -43,11 +46,14 @@ $config = [
                 },
                 ContactService::class => function () {
                     return new ContactService(Yii::$container->get(ContactRepository::class));
-                }
+                },
             ],
             'singletons' => [
                 DealRepository::class => DealRepository::class,
-                ContactRepository::class => ContactRepository::class
+                ContactRepository::class => ContactRepository::class,
+                ContactService::class => ContactService::class,
+                DealService::class => DealService::class,
+                ThemeProviderService::class => ThemeProviderService::class
             ]
         ],
         'request' => [

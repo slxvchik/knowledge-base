@@ -2,7 +2,8 @@
 
 namespace app\models;
 
-use Yii;
+use app\interfaces\DisplayableThemeInterface;
+use yii\base\InvalidConfigException;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
@@ -15,9 +16,9 @@ use yii\db\ActiveRecord;
  * @property string|null $created_at
  * @property string|null $updated_at
  *
-// * @property ContactDeal[] $contact
+ * @property Contact[] $contact_ids
  */
-class Deal extends ActiveRecord
+class Deal extends ActiveRecord implements DisplayableThemeInterface
 {
     /**
      * {@inheritdoc}
@@ -52,6 +53,7 @@ class Deal extends ActiveRecord
             'sum' => 'Сумма',
             'created_at' => 'Создано',
             'updated_at' => 'Обновлено',
+            'contact_ids' => 'Контакты'
         ];
     }
 
@@ -59,10 +61,26 @@ class Deal extends ActiveRecord
      * Gets query for [[ContactDeals]].
      *
      * @return ActiveQuery
+     * @throws InvalidConfigException
      */
-//    public function getDealContacts(): ActiveQuery
-//    {
-//        return $this->hasMany(Contact::class, ['deal_id' => 'id']);
-//    }
+    public function getContacts(): ActiveQuery
+    {
+        return $this->hasMany(Contact::class, ['id' => 'contact_id'])
+            ->viaTable('contact_deal', ['deal_id' => 'id']);
+    }
 
+    function getId()
+    {
+        return $this->id;
+    }
+
+    function getLabel(): string
+    {
+        return $this->name;
+    }
+
+    function getType(): string
+    {
+        return 'deal';
+    }
 }

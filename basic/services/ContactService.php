@@ -3,18 +3,16 @@
 namespace app\services;
 
 use app\exceptions\ValidationException;
+use app\interfaces\ThemeServiceInterface;
 use app\models\Contact;
-use app\models\Deal;
 use app\models\forms\ContactForm;
-use app\models\forms\DealForm;
 use app\repositories\ContactRepository;
-use app\repositories\DealRepository;
 use Throwable;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\web\NotFoundHttpException;
 
-class ContactService
+class ContactService implements ThemeServiceInterface
 {
     private ContactRepository $contactRepository;
 
@@ -40,7 +38,7 @@ class ContactService
      * @throws ValidationException
      * @throws Exception
      */
-    public function createContact(ContactForm $form): int
+    public function createContact(ContactForm $form): Contact
     {
         $contact = $form->createContact();
         return $this->contactRepository->save($contact);
@@ -51,7 +49,7 @@ class ContactService
      * @throws Exception
      * @throws ValidationException
      */
-    public function updateContact(int $id, ContactForm $form): bool
+    public function updateContact(int $id, ContactForm $form): Contact
     {
         $contact = $this->getContact($id);
 
@@ -59,7 +57,6 @@ class ContactService
 
         $contact->first_name = $newContact->first_name;
         $contact->second_name = $newContact->second_name;
-//        $contact->deals = $newContact->deals;
 
         return $this->contactRepository->save($contact);
     }
@@ -75,4 +72,13 @@ class ContactService
     }
 
 
+    public function getAll(): array
+    {
+        return $this->contactRepository->getAll();
+    }
+
+    public function getAjaxUrl(): string
+    {
+        return '/contacts/ajax';
+    }
 }

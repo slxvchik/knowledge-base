@@ -33,10 +33,10 @@ class DealRepository
     /**
      * @throws Exception
      */
-    public function save(Deal $deal): int
+    public function save(Deal $deal): Deal
     {
         $deal->save();
-        return $deal->id;
+        return $deal;
     }
 
     /**

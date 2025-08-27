@@ -33,10 +33,12 @@ class ContactRepository
     /**
      * @throws Exception
      */
-    public function save(Contact $contact): int
+    public function save(Contact $contact): Contact
     {
-        $contact->save();
-        return $contact->id;
+        if (!$contact->save()) {
+            throw new Exception('Can not save contact.');
+        }
+        return $contact;
     }
 
     /**
@@ -52,4 +54,5 @@ class ContactRepository
     {
         return $this->find()->orderBy(['created_at' => SORT_ASC])->all();
     }
+
 }
